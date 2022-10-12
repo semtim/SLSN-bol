@@ -16,9 +16,6 @@ import matplotlib.font_manager as font_manager
 import matplotlib.ticker as ticker
 
 ##########
-#paths for saving approx data
-#path_fig = os.path.abspath('compare_gp1d/')
-##########
 temp = os.path.abspath("second_cut.csv")
 name = pd.read_csv(temp, sep=",")
 name = pd.DataFrame(name)

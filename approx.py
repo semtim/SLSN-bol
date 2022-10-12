@@ -17,8 +17,8 @@ import matplotlib.ticker as ticker
 
 ##########
 #paths for saving approx data
-path_fig = os.path.abspath('approx_magn_results/figures/')
-path_data = os.path.abspath('approx_magn_results/data/')
+path_fig = os.path.abspath('approx_magn/figures/')
+path_data = os.path.abspath('approx_magn/data/')
 ##########
 temp = os.path.abspath("second_cut.csv")
 name = pd.read_csv(temp, sep=",")

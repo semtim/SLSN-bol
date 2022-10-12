@@ -61,7 +61,7 @@ for b in bands_sdss:
 # for b in bands_snls:
 #     band_snls.append( sncosmo.get_bandpass('standard::'+b) )
 bands_snls = ['U','B','V','R','I']
-bessel_path = os.path.abspath("/home/timofey/saimsu/SLSN_2021/bessel_bands.csv")
+bessel_path = os.path.abspath("bessel_bands.csv")
 ubvri = pd.read_csv(bessel_path)
 band_snls = []
 for b in bands_snls:
@@ -98,7 +98,7 @@ bands = dict( zip( bands_sdss + ugriz_prime + UBVRI + ["hat"] #+ uvot
 ######################################################
 #VEGA
 # vega_path = os.path.abspath("/media/documents/гаиш/SLSN_2021/alpha_lyr_stis_005.ascii")
-vega_path = os.path.abspath("/home/timofey/saimsu/SLSN_2021/alpha_lyr_stis_005.ascii")
+vega_path = os.path.abspath("alpha_lyr_stis_005.ascii")
 
 vega = []
 with open(vega_path) as f:
@@ -300,8 +300,8 @@ def plot_luminosity(slsn, z, data, save=0):
     if save == 1:
         #fig.savefig( fname='/media/documents/гаиш/SLSN_2021/bol_figures/' + 
                     #slsn, bbox_inches="tight")
-        fig.savefig( fname='/home/timofey/saimsu/SLSN_2021/fix_x_bol_output/figures/blc/' + 
-                    slsn, bbox_inches="tight", format='pdf')
+        fig.savefig( fname='bol_output/figures/blc/' + 
+                    slsn + '.pdf', bbox_inches="tight", format='pdf')
 
 def y_fmt(x, y):
     return '{:2.1e}'.format(x) #.replace('e', 'x10^')
@@ -351,8 +351,8 @@ def plot_sub(slsn, z, data, save=0):
     if save == 1:
         #fig.savefig( fname='/media/documents/гаиш/SLSN_2021/bol_figures/' + 
                     #slsn, bbox_inches="tight")
-        fig.savefig( fname='/home/timofey/saimsu/SLSN_2021/bol_output_fixedz/figures/' + 
-                    slsn, bbox_inches="tight", format='pdf')
+        fig.savefig( fname='bol_output/figures/' + 
+                    slsn + '.pdf', bbox_inches="tight", format='pdf')
         plt.close()
 
 

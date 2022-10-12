@@ -25,6 +25,6 @@ for slsn in name:
 SLSNI["bandpasses"] = '{' +SLSNI["bandpasses"] + '}'
 SLSNII["bandpasses"] = '{' +SLSNII["bandpasses"] + '}'
 SLSNR["bandpasses"] = '{' +SLSNR["bandpasses"] + '}'
-SLSNI.to_csv('tables\\SLSNI.csv', index=False)
-SLSNII.to_csv('tables\\SLSNII.csv', index=False)
-SLSNR.to_csv('tables\\SLSNR.csv', index=False)
+SLSNI.to_csv('tables/SLSNI.csv', index=False)
+SLSNII.to_csv('tables/SLSNII.csv', index=False)
+SLSNR.to_csv('tables/SLSNR.csv', index=False)

@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import bb
 
-#temp = os.path.abspath("/media/documents/гаиш/SLSN_2021/sample_SLSN.csv")
 temp = os.path.abspath("sample_SLSN.csv")
 name = pd.read_csv(temp, sep=",")
 name = pd.DataFrame(name["Name"])
@@ -38,6 +37,7 @@ for slsn in name:
 #             print(i)
 #             min_magn = bb.flux_to_magn(tmp[tmp<=0][0])
 #             min_mjd = min(min_mjd, data['mjd'].loc[data.columns[1:][i] == min_magn])
+
 second_cut = np.array(second_cut)
 second_cut = second_cut[(second_cut != 'SN2017bcc') * (second_cut != 'SN2016ezh')] #SN2016ezh - TDE
 

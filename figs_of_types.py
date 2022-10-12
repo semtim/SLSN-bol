@@ -144,7 +144,7 @@ ax1.set_ylabel('$log_{10}[ L, erg/s ]$')
 #ax1.set_title('SLSN-I')
 c1, c2, c1_l, c1_2 = 0, 0, 0, 0
 for slsn in name:
-    data_path = os.path.abspath('/home/timofey/saimsu/SLSN_2021/bol_output_fixedz/data/' + slsn + ".csv")
+    data_path = os.path.abspath('bol_output/data/' + slsn + ".csv")
     data = pd.read_csv(data_path, sep=",")
     data_size = len(data["T"])
     L = []
@@ -185,5 +185,4 @@ ax1.grid('on', linestyle='--', alpha=0.7, linewidth=1)
 
 
 
-fig1.savefig( fname='/home/timofey/saimsu/SLSN_2021/types_figures/' + 
-                    'ALL.pdf', bbox_inches="tight", format='pdf')
+fig1.savefig( fname='types_figures/' + 'ALL.pdf', bbox_inches="tight", format='pdf')
