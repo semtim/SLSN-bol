@@ -299,6 +299,7 @@ for i in range(len(name)):
     fig.savefig( fname = path_fig + '/' + str(name['Name'][i]) + '.pdf',
                     bbox_inches="tight", format='pdf')
 
+    plt.close()
 
 ################################################
 #saving data and figures
