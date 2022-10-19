@@ -5,7 +5,7 @@ This repository contains scripts and results of work devoted to processing of ph
 
 ## Sample
 
-SLSN.csv - table downloaded from the main page of the OSC. It includes objects for which there are spectral data. Initial SLSNe sample is made in sampling.py, result is written to sample_SLSN.csv. Secondary (according to the results of approximation of multicolor light curves from the primary sample) selection of SLSNe takes place in second_cut.py. Final list of selected objects: second_cut.csv.
+`SLSN.csv` - table downloaded from the main page of the OSC. It includes objects for which there are spectral data. Initial SLSNe sample is made in sampling.py, result is written to sample_SLSN.csv. Secondary (according to the results of approximation of multicolor light curves from the primary sample) selection of SLSNe takes place in second_cut.py. Final list of selected objects: second_cut.csv.
 
 ## Approximation
 
