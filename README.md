@@ -14,3 +14,7 @@ File `approx.py` performs an approximation of all objects included in our sample
 ## Bolometric light curves
 
 File `bb.py` defines all formulas needed to build a blackbody model. Black body temperature and radius are determined by the least squares method from the approximated multicolor light curves. File `bolometric.py` initializes methods described in `bb.py` for objects from the sample and writes the result in `bol_output/`.
+
+## Methods comparison for PTF12dam
+
+'PTF12dam+superbol/` directory contains 
