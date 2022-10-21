@@ -15,6 +15,8 @@ File `approx.py` performs an approximation of all objects included in our sample
 
 File `bb.py` defines all formulas needed to build a blackbody model. Black body temperature and radius are determined by the least squares method from the approximated multicolor light curves. File `bolometric.py` initializes methods described in `bb.py` for objects from the sample and writes the result in `bol_output/`.
 
-## Methods comparison for PTF12dam
+## Methods comparison
 
 `PTF12dam+superbol` directory is devoted to comparison our bolometric light curve for superluminous supernova PTF12dam, pseudobolometric and obtained by superbol package (https://github.com/mnicholl/superbol). `PTF12dam+superbol/bb_compare_superbol.py` draws figures of luminosity depending on time obtained by different models. `PTF12dam+superbol/PTF12dam figures/` contains resulting figures.
+
+In order to demonstrate that the approximation of multicolor light curves by common GPs, which are applied to each filter independently, is not applicable in our problem, we build a figure (`gp1d_compare.py`) for one of the SLSNe, which shows both results of approximations obtained by one-dimensional GPs and vector GPs.
