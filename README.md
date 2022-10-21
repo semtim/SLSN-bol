@@ -17,4 +17,4 @@ File `bb.py` defines all formulas needed to build a blackbody model. Black body 
 
 ## Methods comparison for PTF12dam
 
-'PTF12dam+superbol/` directory contains 
+`PTF12dam+superbol` directory is devoted to comparison our bolometric light curve for superluminous supernova PTF12dam, pseudobolometric and obtained by superbol package (https://github.com/mnicholl/superbol). `PTF12dam+superbol/bb_compare_superbol.py` draws figures of luminosity depending on time obtained by different models. `PTF12dam+superbol/PTF12dam figures/` contains resulting figures.
