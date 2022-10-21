@@ -4,22 +4,20 @@ import pandas as pd
 from multistate_kernel import MultiStateKernel
 from snad.load.curves import OSCCurve
 from sklearn.gaussian_process import GaussianProcessRegressor
-from sklearn.gaussian_process.kernels import RBF, WhiteKernel,Matern,ConstantKernel,RationalQuadratic
+from sklearn.gaussian_process.kernels import RBF, WhiteKernel
 import os
-import math
-import warnings
-from sklearn.exceptions import ConvergenceWarning
-import time
-from scipy import stats
 import bb
-import matplotlib.font_manager as font_manager
 import matplotlib.ticker as ticker
 
 ##########
 #paths for saving approx data
+
 path_fig = os.path.abspath('approx_magn/figures/')
 path_data = os.path.abspath('approx_magn/data/')
+
 ##########
+
+
 temp = os.path.abspath("second_cut.csv")
 name = pd.read_csv(temp, sep=",")
 name = pd.DataFrame(name)
@@ -31,7 +29,6 @@ sn=[[] for i in range(len(name))]
 #     sn.append( OSCCurve.from_name(name['Name'][i], 
 #                 down_args={"baseurl": "https://sne.space/sne/"}) )
 
-#bands = ["u","g","r","i","z"]
 
 for i in range(len(name)):
     sn[i] = OSCCurve.from_json(os.path.join('./sne', name['Name'][i] + '.json'))
@@ -39,6 +36,8 @@ for i in range(len(name)):
     sn[i] = sn[i].binned(bin_width=1, discrete_time=True)
     
 ####################################################################
+
+
 for i in range(len(name)):
     common_bands = []
     for band in sn[i].bands:
@@ -140,8 +139,6 @@ for i in range(len(name)):
     #######################################
     
     kern_size = int( x[-1,0] + 1 ) #поскольку фильтровали полосы
-    # if kern_size<3:
-    #     continue #игнорируем объект, если меньше 3 фильтров
     
     const_matrix = np.eye(kern_size)
     bound_min = np.eye(kern_size) * (-1e1)
@@ -152,10 +149,8 @@ for i in range(len(name)):
         bound_max[q, 0:q] = 1e1
     bounds = [bound_min, bound_max]
     
-    #size_sc = 3
-    #scales = stats.expon.rvs(size=size_sc, loc=1e-5, scale = 10)
-    #mk = [MultiStateKernel( [RBF(scales[p],(1e-5,1e3)) for k in range(kern_size)],
-    #                       const_matrix, bounds ) for p in range(size_sc)]
+
+
     l_edge, r_edge = 0.5, 100
     if sn[i].name == 'SN2013dg':
         r_edge = 30
@@ -200,10 +195,10 @@ for i in range(len(name)):
         y_magn += (- 2.5 * np.log10( magn_arr.odict[Band].y )).tolist()
         err_magn += (2.5 / np.log(10) / magn_arr.odict[Band].y 
                                     * magn_arr.odict[Band].err).tolist()
-    # norm = max(y_magn)
-    #y_magn, err_magn = np.array(y_magn)/norm, np.array(err_magn)/norm
+
+
     y_magn, err_magn = np.array(y_magn), np.array(err_magn)
-    err1_magn = err_magn**2 #+ (y_magn/25)**2
+    err1_magn = err_magn**2 
     if np.mean(err1_magn) < 0.02:
         err1_magn += 0.026
         
@@ -213,10 +208,10 @@ for i in range(len(name)):
     for j in range(kern_size):
         mask.append( (x[:,0] == j) )
     
-###############################################
+    ###########################################
 
     gpr = GaussianProcessRegressor(kernel=mk, alpha=err1_magn, 
-                                   n_restarts_optimizer=res).fit(x, y_magn) #n_restarts_optimizer=1
+                                   n_restarts_optimizer=res).fit(x, y_magn)
     
     b = sn[i].bands[:kern_size]
    
@@ -228,17 +223,9 @@ for i in range(len(name)):
     X = np.block([ [u*np.ones_like(X), X] for u in range(kern_size) ] )
 
     predict, sigma = gpr.predict(X, return_std =True)
-    # predict *= norm
-    # sigma *= norm
-    # y_magn *= norm
-    # err_magn *= norm
     #ищем минимальный допустимый индекс
     Y, Sigma, xx = [], [],[]
     min_ind = n_days
-    # for u in range(kern_size):
-    #     temp =  predict[n_days*u : n_days*u + n_days]
-    #     min_ind = min( len(temp[temp > 0]), min_ind)
-    # #если есть flux<=0, обрезаем все кривые по этому дню
     for u in range(kern_size):
         temp = predict[n_days*u : n_days*u + n_days][:min_ind]
         Y += temp.tolist()
@@ -246,21 +233,18 @@ for i in range(len(name)):
         xx += X[n_days*u : n_days*u + n_days][:min_ind].tolist()
         
     Y, Sigma = np.array(Y), np.array(Sigma)
-    #csfont = {'fontname':'Times New Roman'}
-    #font = font_manager.FontProperties(family='Times New Roman',
-                                   #weight='bold',
-                                   #style='normal',
-                                   #size=28
-     #                              )
+
+
+
+    
+    #making plots
     font = {'family' : 'Times New Roman',
-        #'weight' : 'bold',
         'size'   : 22}
 
     plt.rc('font', **font)
     plt.rcParams['axes.linewidth'] = 1.2
     
-    fig, ax = plt.subplots(figsize=(10, 7))#figsize=(18, 12),dpi=400
-    #plt.rcParams["font.family"] = "Times New Roman"
+    fig, ax = plt.subplots(figsize=(10, 7))
     plt.title( name['Name'][i] )
  
     for u in range(kern_size):
@@ -275,8 +259,7 @@ for i in range(len(name)):
                           marker='o', ls='',ms=8, color=bb.cols[b[u]],
                           label=b[u], elinewidth=2)
         
-        #plt.errorbar(x[mask[u],1], y[mask[u]], np.sqrt(err1[mask[u]]),
-                      # marker='x', ls='',ms=3, color=bb.cols[b[u]])
+        
     ax.set_xlabel('MJD')
     ax.set_ylabel('Apparent magnitude')
     ax.set_xlim([X[:min_ind,1][0] - 3, X[:min_ind,1][-1] + 3])
@@ -284,7 +267,6 @@ for i in range(len(name)):
 
     ax.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
     ax.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
-    #ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
     ax.xaxis.set_minor_locator(ticker.MultipleLocator(5))
     ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.1))
     ax.grid('on', linestyle='--', alpha=0.7, linewidth=1)
@@ -301,8 +283,10 @@ for i in range(len(name)):
 
     plt.close()
 
+
+
 ################################################
-#saving data and figures
+#saving data
     
     columns = ['mjd']
     for r in b:
@@ -312,40 +296,9 @@ for i in range(len(name)):
     approx_data = pd.DataFrame(columns=columns)
     approx_data["mjd"] = X[:min_ind, 1]
     
-    # xx, Y, Sigma = np.array(xx), np.array(Y), np.array(Sigma)
-    # data = sn[i].convert_arrays(xx, Y, Sigma) #перевод данных в потоки
-    # for band in b:
-    #     approx_data[band] = - 2.5 * np.log10( data.odict[band].y )
-    #     approx_data['err_' + band] = 2.5 / np.log(10) / data.odict[band].y * data.odict[band].err
     for p in range(kern_size):
         approx_data[b[p]] = Y[min_ind*p : min_ind*p + min_ind]
         approx_data['err_' + b[p]] = sigma[min_ind*p : min_ind*p + min_ind]
     
     approx_data.to_csv(path_data + '/' + str(name['Name'][i]) + '.csv',
                          index=False)
-
-
-    # x, y, err = np.array(x), np.array(y), np.array(err)
-    # data_raw = sn[i].convert_arrays(x, y, err)
-    # fig, ax = plt.subplots() #figsize=(18, 12),dpi=400
-    # for b in approx_data.columns[1::2]:
-    #     plt.plot(approx_data["mjd"], approx_data[b], c=bb.cols[b])
-    #     y_raw =  - 2.5 * np.log10( data_raw.odict[b].y )
-    #     x_raw = data_raw.odict[b].x
-    #     plt.scatter(x_raw, y_raw, c=bb.cols[b])
-    # plt.xlabel('mjd')
-    # plt.ylabel('Apparent magnitude')
-    # plt.title(sn[i].name)
-    # plt.legend(approx_data.columns[1::2].tolist())
-    # plt.xlim(approx_data["mjd"][0] - 10, 
-    #          approx_data["mjd"][len(approx_data["mjd"])-1] + 10)
-    # ax.invert_yaxis()
-    
-    # if not np.isnan(np.max(approx_data.to_numpy()[:,1::2])):
-    #     plt.ylim(np.isnan(np.max(approx_data.to_numpy()[:,1::2])) + 0.5, 
-    #          np.min(approx_data.to_numpy()[:,1::2]) - 0.5)
-    
-    # fig.savefig( fname = path_fig + '\\magn\\' + str(name['Name'][i]),
-                # bbox_inches="tight")
-#########################################################
-
