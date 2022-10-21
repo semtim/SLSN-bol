@@ -1,7 +1,7 @@
 ## SLSN-bol
 
 
-This repository contains scripts and results of work devoted to processing of photometric observations of superluminous supernovae presented in the Open Supernova Catalog (OSC). The snad https://github.com/snad-space/snad package was used for convenient work with data from OSC. Multicolor light curves was approximated by vector Gaussian processes implemented in https://gp.snad.space/. Then bolometric light curves in the black body approximation were calculated using obtained continuous light curves and the least squares method.
+This repository contains scripts and results of work devoted to processing of photometric observations of superluminous supernovae presented in the Open Supernova Catalog (OSC, https://sne.space/). The snad https://github.com/snad-space/snad package was used for convenient work with data from OSC. Multicolor light curves was approximated by vector Gaussian processes implemented in https://gp.snad.space/. Then bolometric light curves in the black body approximation were calculated using obtained continuous light curves and the least squares method.
 
 ## Sample
 
