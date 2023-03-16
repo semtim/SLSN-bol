@@ -100,40 +100,40 @@ for i in range(len(name)):
     #######################################
     #cut по дням
     if sn[i].name == 'PTF10aagc':
-        rest_frame = (x[:,1] < (55540))
-        x = x[rest_frame]
-        y = y[rest_frame]
-        err = err[rest_frame]
+        obs_frame = (x[:,1] < (55540))
+        x = x[obs_frame]
+        y = y[obs_frame]
+        err = err[obs_frame]
         
     if sn[i].name == 'SN2011ke':
-        rest_frame = (x[:,1] < (55780))
-        x = x[rest_frame]
-        y = y[rest_frame]
-        err = err[rest_frame]
+        obs_frame = (x[:,1] < (55780))
+        x = x[obs_frame]
+        y = y[obs_frame]
+        err = err[obs_frame]
         
     if sn[i].name == 'SN2016eay':
-        rest_frame = (x[:,1] < (57600))
-        x = x[rest_frame]
-        y = y[rest_frame]
-        err = err[rest_frame]
+        obs_frame = (x[:,1] < (57600))
+        x = x[obs_frame]
+        y = y[obs_frame]
+        err = err[obs_frame]
         
     if sn[i].name == 'SN2015bn':
-        rest_frame = (x[:,1] < (57240))
-        x = x[rest_frame]
-        y = y[rest_frame]
-        err = err[rest_frame]
+        obs_frame = (x[:,1] < (57240))
+        x = x[obs_frame]
+        y = y[obs_frame]
+        err = err[obs_frame]
         
     if sn[i].name == 'SN2013dg':
-        rest_frame = (x[:,1] < (56550))
-        x = x[rest_frame]
-        y = y[rest_frame]
-        err = err[rest_frame]
+        obs_frame = (x[:,1] < (56550))
+        x = x[obs_frame]
+        y = y[obs_frame]
+        err = err[obs_frame]
         
     if sn[i].name == 'SN2011kg':
-        rest_frame = (x[:,1] < (56050))
-        x = x[rest_frame]
-        y = y[rest_frame]
-        err = err[rest_frame]
+        obs_frame = (x[:,1] < (56050))
+        x = x[obs_frame]
+        y = y[obs_frame]
+        err = err[obs_frame]
     #######################################
 
     #######################################
@@ -176,15 +176,15 @@ for i in range(len(name)):
     day = x[max_ind][1]
     
     if sn[i].name in ['PS1-14bj', 'LSQ14bdq']:
-        rest_frame = (x[:,1] > (day - 50)) * (x[:,1] < (day + 250))
+        obs_frame = (x[:,1] > (day - 50)) * (x[:,1] < (day + 250))
     elif sn[i].name == 'iPTF13ajg':
-        rest_frame = (x[:,1] > (day - 50)) * (x[:,1] < (day + 100))
+        obs_frame = (x[:,1] > (day - 50)) * (x[:,1] < (day + 100))
     else:
-        rest_frame = (x[:,1] > (day - 50)) * (x[:,1] < (day + 150))
+        obs_frame = (x[:,1] > (day - 50)) * (x[:,1] < (day + 150))
     
-    x = x[rest_frame]
-    y = y[rest_frame]
-    err = err[rest_frame]
+    x = x[obs_frame]
+    y = y[obs_frame]
+    err = err[obs_frame]
     err1 = err**2 + (y/10)**2
     ###########################
     #to magn
@@ -240,12 +240,12 @@ for i in range(len(name)):
     #making plots
     font = {'family' : 'Times New Roman',
         'size'   : 22}
-
+    plt.rc('text', usetex=True)
     plt.rc('font', **font)
     plt.rcParams['axes.linewidth'] = 1.2
     
     fig, ax = plt.subplots(figsize=(10, 7))
-    plt.title( name['Name'][i] )
+    plt.title( f"{name['Name'][i]}" )
  
     for u in range(kern_size):
         ax.plot(X[:min_ind,1], Y[min_ind*u : min_ind*u + min_ind],
@@ -257,7 +257,7 @@ for i in range(len(name)):
         
         plt.errorbar(x[mask[u],1], y_magn[mask[u]], err_magn[mask[u]],
                           marker='o', ls='',ms=8, color=bb.cols[b[u]],
-                          label=b[u], elinewidth=2)
+                          label=r"\textit{" + b[u] + "}", elinewidth=2)
         
         
     ax.set_xlabel('MJD')
@@ -267,8 +267,10 @@ for i in range(len(name)):
 
     ax.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
     ax.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(5))
-    ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.1))
+    ax.xaxis.set_minor_locator(ticker.MultipleLocator(10))
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(30))
+    ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+    #ax.yaxis.set_major_locator(ticker.MultipleLocator(0.5))
     ax.grid('on', linestyle='--', alpha=0.7, linewidth=1)
 
 
