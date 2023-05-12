@@ -11,12 +11,13 @@ import warnings
 from bisect import bisect_left, bisect_right
 import matplotlib.ticker as tick
 import matplotlib.font_manager as font_manager
+from matplotlib import rc
 
 h = 6.62607015*1e-34 # кг·м2·с−1
 c = 299792458   #  м / с
 k = 1.380649*1e-23 # Дж/К
 Jy = 1e-26 # W /(Hz * m**2) 
-stef_bol = 5.670367*1e-8   #Вт * м-2 * К4
+stef_bol = 5.670367*1e-8   #Вт·м−2·К−4
 
 
 # Colours for plots
@@ -56,18 +57,18 @@ for b in bands_sdss:
 
 #bands - UBVRI
 
-#bands_snls = ['u','b','v','r','i']
-# band_snls = []
-# for b in bands_snls:
-#     band_snls.append( sncosmo.get_bandpass('standard::'+b) )
-bands_snls = ['U','B','V','R','I']
-bessel_path = os.path.abspath("bessel_bands.csv")
-ubvri = pd.read_csv(bessel_path)
+bands_snls = ['u','b','v','r','i']
 band_snls = []
 for b in bands_snls:
-    band_snls.append( ubvri[b] )
+    band_snls.append( sncosmo.get_bandpass('standard::'+b) )
+#bands_snls = ['U','B','V','R','I']
+#bessel_path = os.path.abspath("bessel_bands.csv")
+#ubvri = pd.read_csv(bessel_path)
+#band_snls = []
+#for b in bands_snls:
+#    band_snls.append( ubvri[b] )
     
-L = np.array(ubvri['l']) #in Angs
+L = np.linspace(3000, 11000, 5000) #in Angs
 L *= 1e-10 #in m
 #L = np.linspace( 3000, 11000, 5000 ) * 1e-10  # м
 L_min, L_max = L[0], L[-1]
@@ -140,9 +141,10 @@ def plank(w, T):
     return f
 
 def flux(T):
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore")
-        f = integrate.quad(plank, W_min, W_max, args=(T,))[0]
+    #with warnings.catch_warnings():
+    #    warnings.simplefilter("ignore")
+    #    f = integrate.quad(plank, W_min, W_max, args=(T,))[0]
+    f = stef_bol * T**4
     return f
 
 def Band(w, b):
@@ -150,18 +152,19 @@ def Band(w, b):
     l = c / w
     l_ang = l * 1e+10 #angstrom
     
-    if b[0].islower():
-        return bands[b](l_ang) #/ maximum_bands[b]
-    else:
-        ind = bisect_right(L*1e10, l_ang) - 1
-        ans = bands[b][ind]
-        return ans
+    return bands[b](l_ang)
+    #if b[0].islower():
+    #    return bands[b](l_ang) #/ maximum_bands[b]
+    #else:
+    #    ind = bisect_right(L*1e10, l_ang) - 1
+    #    ans = bands[b][ind]
+    #    return ans
 
 
 def band_Plank(w, b, T, z):
     w0 = w
     w *= (1+z)
-    f = Band(w0,b) * 2*h*w**3 / c**2 / (np.exp( h*w/(k*T) ) - 1) / (1+z)
+    f = Band(w0,b) * 2*h*w**3 / c**2 / (np.exp( h*w/(k*T) ) - 1) * (1+z) * np.pi / w0
     
     return f
 
@@ -169,7 +172,7 @@ def band_Plank_prime_T(w, b, T, z):
     w0 = w
     w *= (1+z)
     f = Band(w0,b) * 2*h**2*(w**4)/(c**2*k)*np.exp( h*w/(k*T) ) \
-        / (np.exp( h*w/(k*T) ) - 1)**2 / T**2 / (1+z)
+        / (np.exp( h*w/(k*T) ) - 1)**2 / T**2 * (1+z) * np.pi / w0
     
     return f
 
@@ -180,14 +183,14 @@ def band_Plank_prime_T_2(w, b, T, z):
     f = Band(w0,b) * 2*h**2*w**4 / (k*c**2) * np.exp( h*w/(k*T) ) \
         * ( (np.exp( h*w/(k*T) ) - 1)**2 * (-2*T - h*w/k) + 
            2*(np.exp( h*w/(k*T) ) - 1)*h*w/k ) / T**4   \
-            / (np.exp( h*w/(k*T) ) - 1)**4 / (1+z)
+            / (np.exp( h*w/(k*T) ) - 1)**4 * (1+z) * np.pi / w0
     return f
 
 def norm_band(w, b):
     if b[0].islower():
-        f = 3631*Jy*Band(w,b)
+        f = 3631*Jy*Band(w,b) / w
     else:
-        f = Vega(w)*Band(w,b)
+        f = Vega(w)*Band(w,b) / w
     return f
 
 const = [1e4, 1e13]
@@ -351,14 +354,15 @@ def plot_sub(slsn, z, data, save=0):
     if save == 1:
         #fig.savefig( fname='/media/documents/гаиш/SLSN_2021/bol_figures/' + 
                     #slsn, bbox_inches="tight")
-        fig.savefig( fname='bol_output/figures/' + 
+        fig.savefig( fname='bol_output_latest/figures/' + 
                     slsn + '.pdf', bbox_inches="tight", format='pdf')
         plt.close()
 
 
 def presets_fig(ax):
+    rc('text', usetex=True)
     font = {'family' : 'Times New Roman',
-    #'weight' : 'bold',
+    #'weight' : 1000,
     'size'   : 22}
     plt.rcParams['axes.linewidth'] = 1.2
     plt.rc('font', **font)
@@ -366,7 +370,7 @@ def presets_fig(ax):
 
     ax.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
     ax.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
-    #ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
-    ax.xaxis.set_minor_locator(tick.MultipleLocator(5))
-    ax.yaxis.set_minor_locator(tick.MultipleLocator(0.1))
+    ax.xaxis.set_major_locator(tick.MultipleLocator(30))
+    ax.xaxis.set_minor_locator(tick.MultipleLocator(10))
+    ax.yaxis.set_minor_locator(tick.MultipleLocator(0.25))
 

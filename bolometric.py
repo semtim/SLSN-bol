@@ -31,7 +31,7 @@ def compute_bol(slsn):
     fun = []
     succ = []
 
-    pred_params = np.array([1.7, 1])
+    pred_params = np.array([1.4, 0.1])
     for d in range(data_size):
         result = minimize(bb.sum_squared_err, pred_params, args=(ap_data.iloc[d], z,),
                      method = 'Newton-CG',
