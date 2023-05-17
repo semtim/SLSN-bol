@@ -161,25 +161,22 @@ def Band(w, b):
     #    return ans
 
 
-def band_Plank(w, b, T, z):
-    w0 = w
-    w *= (1+z)
+def band_Plank(w0, b, T, z):
+    w = w0 * (1+z)
     f = Band(w0,b) * 2*h*w**3 / c**2 / (np.exp( h*w/(k*T) ) - 1) * (1+z) * np.pi / w0
     
     return f
 
-def band_Plank_prime_T(w, b, T, z):
-    w0 = w
-    w *= (1+z)
+def band_Plank_prime_T(w0, b, T, z):
+    w = w0 * (1+z)
     f = Band(w0,b) * 2*h**2*(w**4)/(c**2*k)*np.exp( h*w/(k*T) ) \
         / (np.exp( h*w/(k*T) ) - 1)**2 / T**2 * (1+z) * np.pi / w0
     
     return f
 
 # second deriv
-def band_Plank_prime_T_2(w, b, T, z):
-    w0 = w
-    w *= (1+z)
+def band_Plank_prime_T_2(w0, b, T, z):
+    w = w0 * (1+z)
     f = Band(w0,b) * 2*h**2*w**4 / (k*c**2) * np.exp( h*w/(k*T) ) \
         * ( (np.exp( h*w/(k*T) ) - 1)**2 * (-2*T - h*w/k) + 
            2*(np.exp( h*w/(k*T) ) - 1)*h*w/k ) / T**4   \
@@ -236,7 +233,6 @@ def band_mag_primes_2(x, b, z):
 
 
 def band_mag_jac(x, data, z):
-    T, R = x
     list_b = data.index[1:]
     list_b = list(set(list_b) & set(list(bands.keys())))
     f = ( np.sum( [ -2 * (data[b] - band_mag(b, x, z)) *
@@ -249,7 +245,6 @@ def band_mag_jac(x, data, z):
     return f
 
 def band_mag_hess(x, data, z):
-    T, R = x
     list_b = data.index[1:]
     list_b = list(set(list_b) & set(list(bands.keys())))
     f = ( (np.sum( [ -2 * (data[b] - band_mag(b, x, z)) *
