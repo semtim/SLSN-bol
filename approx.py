@@ -275,8 +275,13 @@ for i in range(len(name)):
 
 
 
-
-    plt.legend(loc='best', columnspacing=0.7, labelspacing=0.3,
+    #get handles and labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+    #specify order of items in legend
+    order = [3,1,0,2]
+    #add legend to plot
+    plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order],
+               loc='best', columnspacing=0.7, labelspacing=0.3,
                handletextpad=0.35,) #framealpha=0.0,
     
     

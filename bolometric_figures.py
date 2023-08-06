@@ -18,7 +18,7 @@ redshifts = pd.read_csv(temp, sep=",")
 
 for slsn in name:
     try:
-        data_path = os.path.abspath('bol_output/data/'
+        data_path = os.path.abspath('bol_output_latest/data/'
                                     + slsn + ".csv")
         data = pd.read_csv(data_path, sep=",")
         z = redshifts.loc[redshifts['Name'] == slsn]["z"].iloc[0]

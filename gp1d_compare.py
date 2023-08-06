@@ -12,7 +12,6 @@ from sklearn.exceptions import ConvergenceWarning
 import time
 from scipy import stats
 import bb
-import matplotlib.font_manager as font_manager
 import matplotlib.ticker as ticker
 
 ##########
@@ -29,8 +28,9 @@ for i in range(len(name)):
     sn[i] = sn[i].filtered(with_upper_limits=False, with_inf_e_flux=False, sort='filtered')
     sn[i] = sn[i].binned(bin_width=1, discrete_time=True)
     
-
-for i in [28]:
+# i=28 PTF10uhf
+# i=22 PTF10aagc
+for i in [22]:
     common_bands = []
     for band in sn[i].bands:
         if band in bb.bands:
@@ -243,46 +243,48 @@ for i in [28]:
                                    #style='normal',
                                    #size=28
      #                              )
-    font = {'family' : 'Times New Roman',
-        #'weight' : 'bold',
-        'size'   : 22}
 
-    plt.rc('font', **font)
-    plt.rcParams['axes.linewidth'] = 1.2
-    
+    b_legend = [r'\textit{' + B + '}' for B in b]
     fig, ax = plt.subplots(figsize=(10, 7))#figsize=(18, 12),dpi=400
-    #plt.rcParams["font.family"] = "Times New Roman"
+    bb.presets_fig(ax)
     plt.title( name['Name'][i] )
  
-    shift_lab = ['', ' + 1', ' - 1']
+    shift = [0, -1, 1]
+    shift_lab = ['', ' $-$ 1', ' + 1']
     for u in range(kern_size):
-        shift = (u//2 + u%2)*(-1)**(u+1)
+        #shift = (u//2 + u%2)*(-1)**(u+1)
         ax.plot(X[:min_ind,1],
-                np.array( Y[min_ind*u : min_ind*u + min_ind]) + shift,
+                np.array( Y[min_ind*u : min_ind*u + min_ind]) + shift[u],
                 color=bb.cols[b[u]], #label=b[u] + shift_lab[u],
                 linewidth=2
                 )
         
         ax.errorbar(x[mask[u],1],
-                    np.array(y_magn[mask[u]]) + shift, err_magn[mask[u]],
+                    np.array(y_magn[mask[u]]) + shift[u], err_magn[mask[u]],
                           marker='o', ls='',ms=8, color=bb.cols[b[u]],
-                          label=b[u] + shift_lab[u], elinewidth=2
+                          label=b_legend[u] + shift_lab[u], elinewidth=2
                           )
         
     ax.set_xlabel('MJD')
     ax.set_ylabel('Apparent magnitude')
-    ax.set_xlim([X[:min_ind,1][0] - 3, X[:min_ind,1][-1] + 3])
+    ax.set_xlim([X[:min_ind,1][0] - 5, X[:min_ind,1][-1] + 20])
+    ax.set_ylim(18.1, 23.8)
     ax.invert_yaxis()
     ax.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
     ax.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
-    #ax.xaxis.set_major_locator(ticker.MultipleLocator(5))
-    ax.xaxis.set_minor_locator(ticker.MultipleLocator(2))
-    ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.2))
+    ax.xaxis.set_major_locator(ticker.MultipleLocator(10))
+    ax.xaxis.set_minor_locator(ticker.MultipleLocator(5))
+    ax.yaxis.set_minor_locator(ticker.MultipleLocator(0.25))
     ax.grid('on', linestyle='--', alpha=0.7, linewidth=1)
 
-    plt.legend(loc='best', columnspacing=0.7, labelspacing=0.3,
-               handletextpad=0.35,) #framealpha=0.0,
-    
+    #get handles and labels
+    handles, labels = plt.gca().get_legend_handles_labels()
+    #specify order of items in legend
+    order = [1,0,2]
+    #add legend to plot
+    plt.legend([handles[idx] for idx in order],[labels[idx] for idx in order],
+               loc='upper left', bbox_to_anchor=(0.725, 0.7), labelspacing=3.2) 
+   
 
 
 ######################################################
@@ -307,13 +309,13 @@ for i in [28]:
    
 
     for u in range(kern_size):
-        shift = (u//2 + u%2)*(-1)**(u+1)
-        ax.plot(X, predict[u] + shift,
+        #shift = (u//2 + u%2)*(-1)**(u+1)
+        ax.plot(X, predict[u] + shift[u],
                 color=bb.cols[b[u]], ls='--', alpha=0.5, linewidth=2)
 
 
 
     
     fig.savefig( fname = 'fig_for_article/' + str(name['Name'][i]) + '_gp1d.pdf',
-                    bbox_inches="tight", format='pdf')
+                    bbox_inches="tight", format='pdf', dpi=1000)
 

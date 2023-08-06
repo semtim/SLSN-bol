@@ -132,14 +132,60 @@ plt.rcParams['axes.linewidth'] = 1.2
 #     axcomp.plot(mjd, np.log10(L))
 # plt.legend(['SN2007bi', 'PTF12dam'])
 
-font = {'family' : 'Times New Roman',
+plt.rc('text', usetex=True)
+font = {
+        'family' : 'Times New Roman',
     #'weight' : 'bold',
     'size'   : 22}
 
 plt.rc('font', **font)
 
+#old version
+# fig1, ax1 = plt.subplots(figsize=(10, 7)) #figsize=(18, 12),dpi=400
+# ax1.set_xlabel('days from maximum')
+# ax1.set_ylabel('$log_{10}[ L, erg/s ]$')
+# #ax1.set_title('SLSN-I')
+# c1, c2, c1_l, c1_2 = 0, 0, 0, 0
+# for slsn in name:
+#     data_path = os.path.abspath('bol_output/data/' + slsn + ".csv")
+#     data = pd.read_csv(data_path, sep=",")
+#     data_size = len(data["T"])
+#     L = []
+#     for i in range(data_size):
+#         L.append( bb.flux(data["T"][i])*4*np.pi*data["R"][i]**2 * 1e+7 )
+#     L = np.array(L)
+    
+#     z = table.loc[table['Name'] == slsn]["redshift"].iloc[0]
+#     mjd = np.array(data["mjd"]) / (z + 1)
+#     mjd = mjd - mjd[np.argmax(L)]
+#     if c1 < 11:
+#         ax1.scatter(mjd, np.log10(L), marker=mark1[c1], s=50,
+#                     facecolors='none', label=slsn,
+#                     edgecolors=list(bb.cols.values())[c1])
+#         c1 += 1
+        
+#     elif c1_2 < 14:
+#         ax1.scatter(mjd, np.log10(L), marker=mark2[c1_2], s=50, label=slsn,
+#                     c=list(bb.cols.values())[c1+c1_2])
+#         c1_2 += 1
+        
+#     else:
+#         ax1.plot(mjd, np.log10(L), linestyle=line[c1_l], label=slsn, linewidth=3)
+#         c1_l += 1
+        
+# ax1.set_xlim(-50, 170)
+# ax1.set_ylim(42.25, 45.5)
+# ax1.legend(ncol=3, columnspacing=0.7, labelspacing=0.25,
+#            handletextpad=0.35, fontsize=12, loc='upper right')
+
+# ax1.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
+# ax1.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
+# ax1.xaxis.set_minor_locator(ticker.MultipleLocator(10))
+# ax1.yaxis.set_minor_locator(ticker.MultipleLocator(0.25))
+# ax1.grid('on', linestyle='--', alpha=0.7, linewidth=1)
+
 fig1, ax1 = plt.subplots(figsize=(10, 7)) #figsize=(18, 12),dpi=400
-ax1.set_xlabel('days from maximum')
+ax1.set_xlabel(r'Rest-frame time (days) relative to peak')
 ax1.set_ylabel('$log_{10}[ L, erg/s ]$')
 #ax1.set_title('SLSN-I')
 c1, c2, c1_l, c1_2 = 0, 0, 0, 0
@@ -156,33 +202,38 @@ for slsn in name:
     mjd = np.array(data["mjd"]) / (z + 1)
     mjd = mjd - mjd[np.argmax(L)]
     if c1 < 11:
-        ax1.scatter(mjd, np.log10(L), marker=mark1[c1], s=40,
+        ax1.scatter(mjd, np.log10(L), marker=mark1[c1], s=50,
                     facecolors='none', label=slsn,
                     edgecolors=list(bb.cols.values())[c1])
         c1 += 1
         
     elif c1_2 < 14:
-        ax1.scatter(mjd, np.log10(L), marker=mark2[c1_2], s=40, label=slsn,
+        ax1.scatter(mjd, np.log10(L), marker=mark2[c1_2], s=50, label=slsn,
                     c=list(bb.cols.values())[c1+c1_2])
         c1_2 += 1
         
     else:
-        ax1.plot(mjd, np.log10(L), linestyle=line[c1_l], label=slsn, linewidth=2)
+        ax1.plot(mjd, np.log10(L), linestyle=line[c1_l], label=slsn, linewidth=3)
         c1_l += 1
         
-#ax1.set_xlim(-50, 166)
-#ax1.set_ylim(42.25, 45.2)
-ax1.set_xlim(-50, 170)
-ax1.set_ylim(42.25, 45.5)
-ax1.legend(ncol=3, columnspacing=0.7, labelspacing=0.25,
-           handletextpad=0.35, fontsize=12, loc='upper right')
+#ax1.set_xlim(-50, 170)
+#ax1.set_ylim(42.25, 45.5)
+ax1.legend(ncol=5, columnspacing=0.7, labelspacing=0.25,
+           handletextpad=0.35, fontsize=14,
+           mode="expand",
+           borderaxespad=0,
+           bbox_to_anchor=(0, 1.02, 1, 0.2),
+           loc="lower left",
+           frameon=False
+           )
 
 ax1.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
 ax1.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
-ax1.xaxis.set_minor_locator(ticker.MultipleLocator(5))
-ax1.yaxis.set_minor_locator(ticker.MultipleLocator(0.1))
+ax1.xaxis.set_minor_locator(ticker.MultipleLocator(10))
+ax1.yaxis.set_minor_locator(ticker.MultipleLocator(0.25))
 ax1.grid('on', linestyle='--', alpha=0.7, linewidth=1)
 
+#plt.subplots_adjust(top=0.78)
 
-
-fig1.savefig( fname='types_figures/' + 'ALL.pdf', bbox_inches="tight", format='pdf')
+fig1.savefig( fname='types_figures/' + 'ALL.pdf', bbox_inches="tight", 
+             dpi=1000, format='pdf')
