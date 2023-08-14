@@ -39,6 +39,18 @@ width = {'u': 458,  'g': 928, 'r': 812, 'i': 894,  'z': 1183, 'y': 628, 'Y': 628
          'U': 485,  'B': 831, 'V': 827, 'R': 1389, 'G': 4203, 'I': 899, 'J': 1759, 'H': 2041,
          'K': 2800, 'S': 671, 'D': 446, 'A': 821,  'F': 268,  'N': 732, 'o': 2580, 'c': 2280}
 
+#Filter bounds
+bounds_l = {'J': [10000, 15000], 'H': [15000, 19000], 'K': [19000, 24000],
+          'UVM2': [1000, 3500], 'UVW1':[1000, 6000], 'UVW2': [1000, 6000],
+         'u': [2000, 5000], 'g':[3000, 6000], 'r':[5000, 8000], 'i':[6000, 9000], 'z':[7000, 12000],
+          "u'": [2000, 5000], "g'":[3000, 6000], "r'":[5000, 8000], "i'":[6000, 9000], "z'":[7000, 12000],
+         'U': [3000, 4500], 'B':[3000, 6000], 'V':[4500, 7500], 'R':[5000,9500], 'I':[7000,9500]}
+
+bounds_w = {}
+for b in bounds_l.keys():
+    temp = c / (np.array(bounds_l[b]) * 1e-10)
+    bounds_w[b] = [temp[-1], temp[0]]
+
 def width_nu(band):
     l = wle[band] # meters
     delta_l = width[band]
@@ -68,12 +80,12 @@ for b in bands_snls:
 #for b in bands_snls:
 #    band_snls.append( ubvri[b] )
     
-L = np.linspace(3000, 11000, 5000) #in Angs
+L = np.linspace(500, 24000, 5000) #in Angs
 L *= 1e-10 #in m
 #L = np.linspace( 3000, 11000, 5000 ) * 1e-10  # м
 L_min, L_max = L[0], L[-1]
 W = c / L
-W_min, W_max = W[-1], W[0]
+W_min, W_max= W[-1], W[0]
 
 
 #bands - swift-uvot
@@ -81,6 +93,13 @@ bands_uvot = ['uvm2','uvw1','uvw2']
 band_uvot = []
 for b in bands_uvot:
     band_uvot.append( sncosmo.get_bandpass('uvot::'+b) )
+
+#bands - 2MASS
+bands_2mass = ['2massj','2massh','2massks']
+band_2mass = []
+for b in bands_2mass:
+    band_2mass.append( sncosmo.get_bandpass(b) )
+
 
 
 def hat(l):
@@ -91,8 +110,8 @@ def hat(l):
 
 UBVRI, uvot = ['U','B','V','R','I'], ['UVM2', 'UVW1', 'UVW2']
 ugriz_prime = ["u'", "g'", "r'", "i'", "z'"]
-bands = dict( zip( bands_sdss + ugriz_prime + UBVRI + ["hat"] #+ uvot
-                  , band_sdss + band_sdss + band_snls + [hat]  ) )#+ band_uvot
+bands = dict( zip( bands_sdss + ugriz_prime + UBVRI + ["hat"] + uvot + ['J', 'H', 'K']
+                  , band_sdss + band_sdss + band_snls + [hat] + band_uvot + band_2mass) )
 # Wl = np.linspace( 3000, 11000, 100000 )
 # maximum_bands = [ max(bands[b](Wl)) for b in  bands_sdss + UBVRI]
 # maximum_bands = dict( zip( bands_sdss + UBVRI, maximum_bands ) )
@@ -106,7 +125,7 @@ with open(vega_path) as f:
     for line in f:
         vega.append([float(x) for x in line.split()])
 vega = np.array(vega)
-vega = vega[(vega[:,0]  >= 3000)*(vega[:,0]  <= 11000)] #cut by range wavelength
+vega = vega[(vega[:,0]  >= 500)*(vega[:,0]  <= 26000)] #cut by range wavelength
 
 def Vega(w):
     l = c / w
@@ -143,7 +162,7 @@ def plank(w, T):
 def flux(T):
     #with warnings.catch_warnings():
     #    warnings.simplefilter("ignore")
-    #    f = integrate.quad(plank, W_min, W_max, args=(T,))[0]
+    #    f = integrate.quad(plank, bounds_w[b][0], bounds_w[b][1], args=(T,))[0]
     f = stef_bol * T**4
     return f
 
@@ -184,50 +203,51 @@ def band_Plank_prime_T_2(w0, b, T, z):
     return f
 
 def norm_band(w, b):
-    if b[0].islower():
-        f = 3631*Jy*Band(w,b) / w
-    else:
+    if b in ['U','B','V','R','I', 'J', 'H', 'K']:
         f = Vega(w)*Band(w,b) / w
+    else:
+        f = 3631*Jy*Band(w,b) / w
     return f
 
 const = [1e4, 1e13]
 def band_mag(b, x, z):
-    #T, R = x
+    #T/const, R/const = x
     T, R = x[0]*const[0], x[1]*const[1]
     d = Distance(z=z, unit=u.m).to_value()
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        f = -2.5 * np.log10( integrate.quad(band_Plank, W_min, W_max, args=(b,T,z,), 
+        f = -2.5 * np.log10( integrate.quad(band_Plank, bounds_w[b][0], bounds_w[b][1], args=(b,T,z,), 
                                       limit=50)[0] \
-        / integrate.quad(norm_band, W_min, W_max, args=(b,), 
+        / integrate.quad(norm_band, bounds_w[b][0], bounds_w[b][1], args=(b,), 
                                       limit=50)[0] * R**2 / d**2)
 
     return f
 
+
 def band_mag_primes(x, b, z):
-    #T, R = x
+    #T/const, R/const = x
     T, R = x[0]*const[0], x[1]*const[1]
     
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        f = -2.5 * integrate.quad(band_Plank_prime_T, W_min, W_max, 
+        f = -2.5 * integrate.quad(band_Plank_prime_T, bounds_w[b][0], bounds_w[b][1], 
                                                      args=(b,T,z,))[0] \
-            / integrate.quad(band_Plank, W_min, W_max, args=(b,T,z))[0]
+            / integrate.quad(band_Plank, bounds_w[b][0], bounds_w[b][1], args=(b,T,z))[0]
     return (f/np.log(10)*const[0], -5/R/np.log(10)*const[1])
 
 #second mag primes
 def band_mag_primes_2(x, b, z):
-    #T, R = x
+    #T/const, R/const = x
     T, R = x[0]*const[0], x[1]*const[1]
     
     with warnings.catch_warnings():
         warnings.simplefilter("ignore")
-        f = -2.5 / np.log(10) * (integrate.quad(band_Plank_prime_T_2, W_min, W_max, 
+        f = -2.5 / np.log(10) * (integrate.quad(band_Plank_prime_T_2, bounds_w[b][0], bounds_w[b][1], 
                                                      args=(b,T,z,))[0] \
-            / integrate.quad(band_Plank, W_min, W_max, args=(b,T,z))[0] \
-                - (integrate.quad(band_Plank_prime_T, W_min, W_max, 
+            / integrate.quad(band_Plank, bounds_w[b][0], bounds_w[b][1], args=(b,T,z))[0] \
+                - (integrate.quad(band_Plank_prime_T, bounds_w[b][0], bounds_w[b][1], 
                                                      args=(b,T,z,))[0] \
-            / integrate.quad(band_Plank, W_min, W_max, args=(b,T,z))[0])**2)
+            / integrate.quad(band_Plank, bounds_w[b][0], bounds_w[b][1], args=(b,T,z))[0])**2)
                 
     return (f*const[0]**2 , 5/R**2/np.log(10)*const[1]**2)
 
@@ -271,12 +291,60 @@ def sum_squared_err(x, data, z):
     list_b = data.index[1:]
     f = 0
     for b in list_b:
-        if b in bands:      #есть ли фильтр в нашей базе
-            f += (data[b] - band_mag(b, x, z))**2   
+        if b in bands:      #доступен ли фильтр
+            f += (data[b] - band_mag(b, x, z))**2
+        elif b[:3] != 'err':
+            print(f'Warning, invalid bandpass: {b}! It will be ignored')
     return f
 
 
+def residuals(x, data, z):
+    list_b = data.index[1:]
+    res = []
+    for b in list_b:
+        if b in bands:      #доступен ли фильтр
+            res.append((data[b] - band_mag(b, x, z))**2)
+        elif b[:3] != 'err':
+            print(f'Warning, invalid bandpass: {b}! It will be ignored')
+    return res
+    
+def Jacobian(x, list_b, z):
+    #return [dm_i/dT], [dm_i/dR]
+    jac = [[], []]
+    for b in list_b:
+        jac[0].append(band_mag_primes(x,b,z)[0] / const[0]) #делим на const[0], потому что 
+        jac[1].append(band_mag_primes(x,b,z)[1] / const[1]) #band_mag_primes(x,b,z) это производные d/d(T/const) и d/d(R/const) 
+    return np.array(jac)
 
+def L_primes(x):
+    # dL/dT,  dL/dR
+    T, R = x[0]*const[0], x[1]*const[1]
+    L_T = 4 * stef_bol * T**3 * 4 * np.pi * R**2
+    L_R = 4* np.pi * R * 2 * stef_bol * T**4
+    return (L_T, L_R)
+
+def logL_primes(x):
+    L_prime = L_primes(x)
+    primes = (L_prime[0] / np.log(10) / L(x), L_prime[1] / np.log(10) / L(x))
+    return primes
+
+
+def sigma_logL(x, data, z):
+    list_b = data.index[1:]
+    list_b = list(set(list_b) & set(list(bands.keys())))
+    jac = Jacobian(x, list_b, z)
+    sigma = sum_squared_err(x, data, z) / (len(list_b) - 2) * np.linalg.inv(np.matmul(jac, jac.T))
+    primes = logL_primes(x)
+    sigma_logL = np.sqrt(
+                         (primes[1] * np.sqrt(sigma[1][1]))**2 + (primes[0] * np.sqrt(sigma[0][0]))**2
+                         + (2 * primes[1] * primes[0] * sigma[0][1])
+                        )
+    return sigma_logL
+
+def L(x):
+    T, R = x[0]*const[0], x[1]*const[1]
+    return flux(T) * 4 * np.pi * R**2
+    
 ###############################################################################
 #plots
 def plot_luminosity(slsn, z, data, save=0):

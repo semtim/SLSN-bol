@@ -39,11 +39,21 @@ ax.xaxis.set_major_locator(ticker.MultipleLocator(1))
 ax.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
 ax.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
 
+ax2 = ax.twinx()
+ax2.step(date, allSN, linewidth=2, visible=False)
+ax2.step(date, slsn, linewidth=2, visible=False)
+ax2.tick_params(axis='both', direction='in', which='major',  length=8, width=2)
+ax2.tick_params(axis='both', direction='in', which='minor',  length=5, width=1.5)
+ax2.semilogy()
+
+
+ax.grid('on', linestyle='--', alpha=0.7, linewidth=1)
+
 ax.set_ylabel('Cumulative number')
 ax.set_xlabel('Year')
 
 ax.semilogy()
 
 
-fig.savefig( fname = 'fig_for_article/cumulative.pdf',
+fig.savefig( fname = 'fig_for_article/cumulative_corrected.pdf',
                     bbox_inches="tight", format='pdf')

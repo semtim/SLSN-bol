@@ -236,7 +236,7 @@ for i in [22]:
         Sigma += sigma[n_days*u : n_days*u + n_days][:min_ind].tolist()
         xx += X[n_days*u : n_days*u + n_days][:min_ind].tolist()
         
-
+    Y, Sigma = np.array(Y), np.array(Sigma)
     #csfont = {'fontname':'Times New Roman'}
     #font = font_manager.FontProperties(family='Times New Roman',
                                    #weight='bold',
@@ -254,7 +254,7 @@ for i in [22]:
     for u in range(kern_size):
         #shift = (u//2 + u%2)*(-1)**(u+1)
         ax.plot(X[:min_ind,1],
-                np.array( Y[min_ind*u : min_ind*u + min_ind]) + shift[u],
+                Y[min_ind*u : min_ind*u + min_ind] + shift[u],
                 color=bb.cols[b[u]], #label=b[u] + shift_lab[u],
                 linewidth=2
                 )
@@ -264,6 +264,10 @@ for i in [22]:
                           marker='o', ls='',ms=8, color=bb.cols[b[u]],
                           label=b_legend[u] + shift_lab[u], elinewidth=2
                           )
+        ax.fill_between(X[:min_ind,1],
+                        Y[min_ind*u : min_ind*u + min_ind] + Sigma[min_ind*u : min_ind*u + min_ind] + shift[u],
+                        Y[min_ind*u : min_ind*u + min_ind] - Sigma[min_ind*u : min_ind*u + min_ind] + shift[u],
+                        alpha=0.3, color=bb.cols[b[u]])
         
     ax.set_xlabel('MJD')
     ax.set_ylabel('Apparent magnitude')
