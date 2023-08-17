@@ -49,6 +49,7 @@ bounds_l = {'J': [10000, 15000], 'H': [15000, 19000], 'K': [19000, 24000],
 bounds_w = {}
 for b in bounds_l.keys():
     temp = c / (np.array(bounds_l[b]) * 1e-10)
+    #temp = c / (np.array([3000,11000]) * 1e-10)
     bounds_w[b] = [temp[-1], temp[0]]
 
 def width_nu(band):
@@ -79,13 +80,6 @@ for b in bands_snls:
 #band_snls = []
 #for b in bands_snls:
 #    band_snls.append( ubvri[b] )
-    
-L = np.linspace(500, 24000, 5000) #in Angs
-L *= 1e-10 #in m
-#L = np.linspace( 3000, 11000, 5000 ) * 1e-10  # м
-L_min, L_max = L[0], L[-1]
-W = c / L
-W_min, W_max= W[-1], W[0]
 
 
 #bands - swift-uvot
@@ -112,12 +106,9 @@ UBVRI, uvot = ['U','B','V','R','I'], ['UVM2', 'UVW1', 'UVW2']
 ugriz_prime = ["u'", "g'", "r'", "i'", "z'"]
 bands = dict( zip( bands_sdss + ugriz_prime + UBVRI + ["hat"] + uvot + ['J', 'H', 'K']
                   , band_sdss + band_sdss + band_snls + [hat] + band_uvot + band_2mass) )
-# Wl = np.linspace( 3000, 11000, 100000 )
-# maximum_bands = [ max(bands[b](Wl)) for b in  bands_sdss + UBVRI]
-# maximum_bands = dict( zip( bands_sdss + UBVRI, maximum_bands ) )
+
 ######################################################
 #VEGA
-# vega_path = os.path.abspath("/media/documents/гаиш/SLSN_2021/alpha_lyr_stis_005.ascii")
 vega_path = os.path.abspath("alpha_lyr_stis_005.ascii")
 
 vega = []
@@ -125,13 +116,11 @@ with open(vega_path) as f:
     for line in f:
         vega.append([float(x) for x in line.split()])
 vega = np.array(vega)
-vega = vega[(vega[:,0]  >= 500)*(vega[:,0]  <= 26000)] #cut by range wavelength
+vega = vega[(vega[:,0]  >= 500)*(vega[:,0]  <= 24000)] #cut by range wavelength
 
 def Vega(w):
     l = c / w
     l_ang = l * 1e+10 #angstrom
-    #nearest = min(vega[:,0], key=lambda x: abs(x-l_ang))
-    #ans = vega[(vega[:,0]) == nearest][0,1]
     ind = bisect_right(vega[:,0], l_ang) - 1
     ans = vega[ind, 1] * 1e+7 #f_lambda в си
     ans *= l**2 / c
@@ -160,9 +149,6 @@ def plank(w, T):
     return f
 
 def flux(T):
-    #with warnings.catch_warnings():
-    #    warnings.simplefilter("ignore")
-    #    f = integrate.quad(plank, bounds_w[b][0], bounds_w[b][1], args=(T,))[0]
     f = stef_bol * T**4
     return f
 
@@ -172,17 +158,11 @@ def Band(w, b):
     l_ang = l * 1e+10 #angstrom
     
     return bands[b](l_ang)
-    #if b[0].islower():
-    #    return bands[b](l_ang) #/ maximum_bands[b]
-    #else:
-    #    ind = bisect_right(L*1e10, l_ang) - 1
-    #    ans = bands[b][ind]
-    #    return ans
 
 
 def band_Plank(w0, b, T, z):
     w = w0 * (1+z)
-    f = Band(w0,b) * 2*h*w**3 / c**2 / (np.exp( h*w/(k*T) ) - 1) * (1+z) * np.pi / w0
+    f = Band(w0,b) * 2*h*w**3 / c**2 / (np.exp( h*w/(k*T) ) - 1) * (1+z) * np.pi / w0 # *(1+z) because D_L
     
     return f
 
@@ -209,6 +189,7 @@ def norm_band(w, b):
         f = 3631*Jy*Band(w,b) / w
     return f
 
+#const = [1e4, 1e12] # SN2006gy
 const = [1e4, 1e13]
 def band_mag(b, x, z):
     #T/const, R/const = x
@@ -374,15 +355,12 @@ def y_fmt(x, y):
 
 def plot_sub(slsn, z, data, save=0):
     data_size = len(data["T"])
-    L = []
-    for i in range(data_size):
-        L.append( flux(data["T"][i])*4*np.pi*data["R"][i]**2 * 1e+7 )
-    L = np.array(L)
+    logL = data['logL'] + 7 # ~erg
 
-    max_day = data["mjd"][np.argmax(L)]
+    max_day = data["mjd"][np.argmax(logL)]
     mask = (data["mjd"] <= max_day + 150)
     mjd = np.array(data["mjd"][mask]) / (z + 1)
-    mjd = mjd - mjd[np.argmax(L)]
+    mjd = mjd - mjd[np.argmax(logL)]
     
     fig, axs = plt.subplots(3,sharex=True,figsize=(10, 7),
                             gridspec_kw={'height_ratios': [2, 1.2, 1.2]}) #figsize=(18, 12),dpi=400
@@ -394,7 +372,11 @@ def plot_sub(slsn, z, data, save=0):
     axs[1].yaxis.set_major_formatter(tick.FuncFormatter(y_fmt))
     axs[2].yaxis.set_major_formatter(tick.FuncFormatter(y_fmt))
     
-    axs[0].plot(mjd, np.log10(L[mask]), c='royalblue')
+    axs[0].plot(mjd, logL[mask], c='royalblue')
+    axs[0].fill_between(mjd,
+                        logL[mask] - data['sigma_logL'][mask],
+                        logL[mask] + data['sigma_logL'][mask],
+                        alpha=0.3, color='royalblue')
     #plt.xlabel('mjd')
     axs[0].set_ylabel('$lg_{10}L$  $[erg/s]$')
     #plt.title(slsn)
@@ -417,7 +399,7 @@ def plot_sub(slsn, z, data, save=0):
     if save == 1:
         #fig.savefig( fname='/media/documents/гаиш/SLSN_2021/bol_figures/' + 
                     #slsn, bbox_inches="tight")
-        fig.savefig( fname='bol_output_latest/figures/' + 
+        fig.savefig( fname='bol_output/figures/' + 
                     slsn + '.pdf', bbox_inches="tight", format='pdf')
         plt.close()
 

@@ -18,32 +18,17 @@ import bb
 data_path = os.path.abspath('PTF12dam_bb.csv')
 data = pd.read_csv(data_path, sep=",")
 
+griB_UV_JHK = pd.read_csv('griBUVJHK.csv', sep=",")
+
 data_sup_path = os.path.abspath("bol_PTF12dam_Bgri.txt")
 data_sup = pd.read_csv(data_sup_path, sep="\s+")
 
 data_multicol_path = os.path.abspath("PTF12dam_multicol.csv")
 data_multicol = pd.read_csv(data_multicol_path, sep=",")
 
-#raw_data = OSCCurve.from_name(name, bands=data_multicol.columns[1:],
- #                down_args={"baseurl": "https://sne.space/sne/"})
-
-#raw_data = raw_data.filtered(with_upper_limits=False, with_inf_e_flux=False,
-#                                                     sort='filtered')
-
-#raw_data = raw_data.binned(bin_width=3, discrete_time=True)
-
 ####################################################################
 z = 0.1073
 
-data_size = len(data["T"])
-L = []
-for i in range(data_size):
-    L.append( bb.flux(data["T"][i])*4*np.pi*data["R"][i]**2 * 1e+7 )
-L = np.array(L)
-
-
-
-####################################################################
 #model AB magnitudes and sse
 model_ABmagn = pd.DataFrame(columns=data_multicol.columns)
 model_ABmagn["mjd"] = data['mjd']
@@ -101,67 +86,18 @@ axs[0].set_yticks(yticks)
 #axs[1].yaxis.set_minor_locator(tick.MultipleLocator(0.0005))
 axs[1].xaxis.set_major_locator(tick.MultipleLocator(30))
 
-if save:
-    path_fig = os.path.abspath('PTF12dam figures')
-    fig.savefig( fname = path_fig + '/PTF12dam_BBaccur.pdf'  
+
+path_fig = os.path.abspath('PTF12dam figures')
+fig.savefig( fname = path_fig + '/PTF12dam_BBaccur.pdf'  
                 , bbox_inches="tight", format='pdf', dpi=1000)
-############
-#hat band
-# ABmagn_hat = []
-# for x in zip(data["T"], data["R"]):
-#     ABmagn_hat.append( bb.band_mag('hat', x, z) )
-#####################################################################
-
-#magn
-# bb_magn = m_sun - 2.5 * np.log10(L / L_sun) + 5 * np.log10( d / d_sun)
-# fig, ax = plt.subplots(figsize=(18, 12),dpi=400 )
-# plt.plot(data["mjd"], bb_magn, c="black")
-
-# for band in data_multicol.columns[1:-1]:
-#     plt.plot(data_multicol["mjd"], data_multicol[band], ls='--', alpha=0.3, 
-#              c=bb.cols[band])
-
-# #plt.plot(data_multicol["mjd"], sum_magn, c = 'purple')
-# plt.xlim(min(raw_data.X[:,1]), max(data_multicol["mjd"]))
-# ax.invert_yaxis()
-
-# plt.legend(["bb fit"] + 
-#                data_multicol.columns[1:-1].to_list()
-#                + ["pseudobolometric"], ncol=2, loc=1)
-# plt.title("Apparent magnitudes")
-###########################
-#absolute magnitudes
-# M_sup = M_sun - 2.5*np.log10( np.array(data_sup["L_BB"].to_list()) /L_sun)
-# M_col = []
-# for band in data_multicol.columns[1:-1]:
-#     m = np.array( data_multicol[band].tolist() )
-#     M_col.append( m - 5*np.log10(d_pc/10) )path_fig = os.path.abspath(name + ' figures')
-#     fig.savefig( fname = path_fig + '/' + name + '_ABmagn'  ,
-#                 bbox_inches="tight", format='pdf')
-
-# fig, ax = plt.subplots()#figsize=(18, 12),dpi=400 
-# plt.plot(data["mjd"], M)
-# plt.xlabel('MJD')
-# plt.ylabel('Absolute magnitude')
-# ax.invert_yaxis()
-# for Mb, band in zip(M_col, b[:-1]):
-#     plt.plot(data["mjd"], Mb, ls='--', alpha=0.3, c=bb.cols[band])
-
-# plt.errorbar(data_sup["mjd"], M_sup, fmt='o')
-# plt.legend(["bb fit"] + data_multicol.columns[1:-1].to_list() + 
-#            ["superbol fit"], ncol=2, loc=1)
-
-# if save:
-#     fig.savefig( fname = path_fig + '\\' + name + '_abs_magn' ,
-#                 bbox_inches="tight")
-    
     
 ###########################
 #Luminosity
 #Matt Nicholl et al. 2013
 mjd_obs, L_obs = [-60, -42, -5, 10, 26, 60, 90, 175], [43.25, 43.67, 44.166, 44.14, 44.03,43.69, 43.5, 43]#from DOI: 1310.4446
 mjd = data["mjd"] / (1 + z)
-day_max = mjd[np.argmax(L)]
+logL = data['logL'] + 7
+day_max = mjd[np.argmax(logL)]
 
 #Vreeswijk et al. 2016
 mjd_vreeswijk = np.array([-78.86, -75.24, -71.68, -68.86, -66.28, -25.71, -23.76, -19.69, -17.06, -14.89,
@@ -192,8 +128,17 @@ mask = superbol_err < 0.47
 fig, ax = plt.subplots(figsize=(10, 7)) #figsize=(18, 12),dpi=400
 bb.presets_fig(ax)
 
-ax.plot(mjd, np.log10(L), c='b', label='BB fit')
+ax.plot(mjd, logL, c='b', label='vector GP + BB fit')
+ax.fill_between(mjd, logL - data['sigma_logL'], logL + data['sigma_logL'],
+                alpha=0.3, color='b')
 
+ax.plot(griB_UV_JHK['mjd'] / (1+z),
+        griB_UV_JHK['logL'] + 7,
+        c='r', label='griB UV JHK')
+ax.fill_between(griB_UV_JHK['mjd'] / (1+z),
+                griB_UV_JHK['logL'] + 7 - griB_UV_JHK['sigma_logL'],
+                griB_UV_JHK['logL'] + 7 + griB_UV_JHK['sigma_logL'],
+                alpha=0.3, color='r')
 #ax.plot(data_multicol["mjd"]-data_multicol["mjd"][np.argmax(pseudobol)],
 #        np.log10(pseudobol), c='limegreen', label="$gri$ sum")
 
@@ -216,12 +161,8 @@ ax.legend(ncol=1,
           handletextpad=0.35, fontsize=22,
           bbox_to_anchor=(1.01, 1.015),
           loc="upper right",
-          #mode="expand",
-          #borderaxespad=0
           )
 
-# plt.subplots_adjust(top=0.8)
-#plt.tight_layout(rect=[0, 1, 1, 0])
 
 plt.xlim(mjd[0] - 7, mjd[len(data['mjd']) - 1] + 10)
 plt.ylim(43.2, 44.9)
@@ -230,6 +171,5 @@ ax.grid('on', linestyle='--', alpha=0.7, linewidth=1)
 ax.yaxis.set_minor_locator(tick.MultipleLocator(0.125))
 
 
-if save:
-    fig.savefig( fname = 'PTF12dam figures/PTF12dam_luminosity.pdf' ,
+fig.savefig( fname = 'PTF12dam figures/PTF12dam_luminosity.pdf' ,
                 bbox_inches="tight", format='pdf')

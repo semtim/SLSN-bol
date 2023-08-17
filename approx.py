@@ -216,7 +216,7 @@ for i in range(len(name)):
     b = sn[i].bands[:kern_size]
    
     bins = 3
-    if sn[i].name == 'PTF10aagc':
+    if sn[i].name in ['PTF10aagc' , 'SN2006gy']:
         bins = 1
     n_days = int( ( max(x[:,1]) - min(x[:,1]) ) // bins )
     X = np.linspace(min(x[:,1]), max(x[:,1]), n_days).reshape(-1,1)
