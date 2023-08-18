@@ -19,6 +19,8 @@ data_path = os.path.abspath('PTF12dam_bb.csv')
 data = pd.read_csv(data_path, sep=",")
 
 griB_UV_JHK = pd.read_csv('griBUVJHK.csv', sep=",")
+griB_JHK = pd.read_csv('griB_JHK.csv', sep=",")
+
 
 data_sup_path = os.path.abspath("bol_PTF12dam_Bgri.txt")
 data_sup = pd.read_csv(data_sup_path, sep="\s+")
@@ -128,17 +130,29 @@ mask = superbol_err < 0.47
 fig, ax = plt.subplots(figsize=(10, 7)) #figsize=(18, 12),dpi=400
 bb.presets_fig(ax)
 
-ax.plot(mjd, logL, c='b', label='vector GP + BB fit')
+ax.plot(mjd, logL, c='b', label=r'vector GP (\textit{Bgri}) + BB fit')
 ax.fill_between(mjd, logL - data['sigma_logL'], logL + data['sigma_logL'],
                 alpha=0.3, color='b')
 
+
 ax.plot(griB_UV_JHK['mjd'] / (1+z),
         griB_UV_JHK['logL'] + 7,
-        c='r', label='griB UV JHK')
+        c='r', label=r'vector GP (\textit{UV}+\textit{Bgri}+\textit{JHK}) + BB fit')
 ax.fill_between(griB_UV_JHK['mjd'] / (1+z),
                 griB_UV_JHK['logL'] + 7 - griB_UV_JHK['sigma_logL'],
                 griB_UV_JHK['logL'] + 7 + griB_UV_JHK['sigma_logL'],
                 alpha=0.3, color='r')
+
+ax.plot(griB_JHK['mjd'] / (1+z),
+        griB_JHK['logL'] + 7,
+        c='green', label=r'vector GP (\textit{Bgri}+\textit{JHK}) + BB fit')
+ax.fill_between(griB_JHK['mjd'] / (1+z),
+                griB_JHK['logL'] + 7 - griB_JHK['sigma_logL'],
+                griB_JHK['logL'] + 7 + griB_JHK['sigma_logL'],
+                alpha=0.3, color='green')
+
+
+
 #ax.plot(data_multicol["mjd"]-data_multicol["mjd"][np.argmax(pseudobol)],
 #        np.log10(pseudobol), c='limegreen', label="$gri$ sum")
 
@@ -158,13 +172,13 @@ ax.set_title('PTF12dam')
 ax.legend(ncol=1,
           columnspacing=0.4,
           labelspacing=0.2,
-          handletextpad=0.35, fontsize=22,
+          handletextpad=0.35, fontsize=17,
           bbox_to_anchor=(1.01, 1.015),
           loc="upper right",
           )
 
 
-plt.xlim(mjd[0] - 7, mjd[len(data['mjd']) - 1] + 10)
+plt.xlim(mjd[0] - 7, mjd[len(data['mjd']) - 1] + 5)
 plt.ylim(43.2, 44.9)
 ax.xaxis.set_major_locator(tick.MultipleLocator(30))
 ax.grid('on', linestyle='--', alpha=0.7, linewidth=1)
